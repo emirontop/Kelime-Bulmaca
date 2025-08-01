@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import letters from '../letters';
 
 // Türkçe karakterleri düzleştirir
@@ -28,12 +28,20 @@ export default function Home() {
   const [answer, setAnswer] = useState('');
   const [status, setStatus] = useState(null);
 
+  // İstatistikler
+  const [correctCount, setCorrectCount] = useState(0);
+  const [wrongCount, setWrongCount] = useState(0);
+  const [combo, setCombo] = useState(0);
+
   const handleCheck = () => {
     const correct = normalize(entries[index][1].trim());
     const userAnswer = normalize(answer.trim());
 
     if (userAnswer === correct) {
       setStatus('correct');
+      setCorrectCount(prev => prev + 1);
+      setCombo(prev => prev + 1);
+
       setTimeout(() => {
         setIndex(getRandomIndex(entries.length, index));
         setAnswer('');
@@ -41,6 +49,8 @@ export default function Home() {
       }, 1000);
     } else {
       setStatus('wrong');
+      setWrongCount(prev => prev + 1);
+      setCombo(0);
     }
   };
 
@@ -61,8 +71,21 @@ export default function Home() {
         boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
         width: '100%',
         maxWidth: '400px',
-        textAlign: 'center'
+        textAlign: 'center',
+        position: 'relative'
       }}>
+        {/* 🔥 Combo Görseli */}
+        {combo >= 3 && (
+          <div style={{
+            position: 'absolute',
+            top: '-1.5rem',
+            right: '-1.5rem',
+            fontSize: '3rem'
+          }}>
+            🔥
+          </div>
+        )}
+
         <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: '#333' }}>
           Translate the word below:
         </h2>
@@ -100,12 +123,25 @@ export default function Home() {
           }}
         />
 
+        {/* ✅ / ❌ Geri Bildirim */}
         {status === 'correct' && (
           <p style={{ color: '#38c172', marginTop: '0.75rem' }}>✅ Correct!</p>
         )}
         {status === 'wrong' && (
           <p style={{ color: '#e3342f', marginTop: '0.75rem' }}>❌ Wrong! Try again.</p>
         )}
+
+        {/* 📊 İstatistikler */}
+        <div style={{
+          marginTop: '1.5rem',
+          textAlign: 'left',
+          fontSize: '0.95rem',
+          color: '#555'
+        }}>
+          <p><strong>✅ Correct:</strong> {correctCount}</p>
+          <p><strong>❌ Wrong:</strong> {wrongCount}</p>
+          <p><strong>🔥 Combo:</strong> {combo}</p>
+        </div>
       </div>
     </div>
   );
