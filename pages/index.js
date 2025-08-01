@@ -1,29 +1,66 @@
+import { useState } from 'react';
 import letters from '../letters';
 
 export default function Home() {
+  const entries = Object.entries(letters);
+  const [index, setIndex] = useState(0);
+  const [answer, setAnswer] = useState('');
+  const [status, setStatus] = useState(null); // null, 'correct', 'wrong'
+
+  const handleCheck = () => {
+    const correct = entries[index][1].toLowerCase().trim();
+    const userAnswer = answer.toLowerCase().trim();
+
+    if (userAnswer === correct) {
+      setStatus('correct');
+      setTimeout(() => {
+        setIndex(prev => (prev + 1) % entries.length);
+        setAnswer('');
+        setStatus(null);
+      }, 1000);
+    } else {
+      setStatus('wrong');
+    }
+  };
+
   return (
     <div style={{
       fontFamily: 'Arial, sans-serif',
       padding: '2rem',
-      maxWidth: '800px',
+      maxWidth: '500px',
       margin: '0 auto',
-      backgroundColor: '#f9f9f9',
-      color: '#222',
-      lineHeight: '1.6'
+      textAlign: 'center'
     }}>
-      <h1 style={{ fontSize: '2rem', marginBottom: '1rem' }}>
-        English → Turkish Dictionary
-      </h1>
-      <ul style={{ listStyle: 'none', padding: 0 }}>
-        {Object.entries(letters).map(([eng, tr], index) => (
-          <li key={index} style={{
-            padding: '0.4rem 0',
-            borderBottom: '1px solid #ddd'
-          }}>
-            <strong>{eng}</strong> → {tr}
-          </li>
-        ))}
-      </ul>
+      <h1>Translate This:</h1>
+      <h2 style={{ fontSize: '2rem', margin: '1rem 0' }}>
+        {entries[index][0]}
+      </h2>
+
+      <input
+        type="text"
+        value={answer}
+        onChange={(e) => {
+          setAnswer(e.target.value);
+          setStatus(null);
+        }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') handleCheck();
+        }}
+        style={{
+          padding: '0.5rem',
+          width: '100%',
+          fontSize: '1rem',
+          border: status === 'correct' ? '2px solid green' :
+                  status === 'wrong' ? '2px solid red' :
+                  '1px solid #ccc',
+          borderRadius: '4px',
+          outline: 'none'
+        }}
+        placeholder="Türkçesini yaz..."
+      />
+
+      {status === 'correct' && <p style={{ color: 'green', marginTop: '0.5rem' }}>✅ Doğru!</p>}
+      {status === 'wrong' && <p style={{ color: 'red', marginTop: '0.5rem' }}>❌ Yanlış! Tekrar dene.</p>}
     </div>
   );
-          }
+}
