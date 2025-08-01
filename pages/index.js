@@ -1,6 +1,18 @@
 import { useState } from 'react';
 import letters from '../letters';
 
+// Türkçe karakterleri düzleştiren fonksiyon
+function normalize(text) {
+  return text
+    .toLowerCase()
+    .replace(/ö/g, 'o')
+    .replace(/ç/g, 'c')
+    .replace(/ş/g, 's')
+    .replace(/ı/g, 'i')
+    .replace(/ğ/g, 'g')
+    .replace(/ü/g, 'u');
+}
+
 export default function Home() {
   const entries = Object.entries(letters);
   const [index, setIndex] = useState(0);
@@ -8,8 +20,8 @@ export default function Home() {
   const [status, setStatus] = useState(null); // null, 'correct', 'wrong'
 
   const handleCheck = () => {
-    const correct = entries[index][1].toLowerCase().trim();
-    const userAnswer = answer.toLowerCase().trim();
+    const correct = normalize(entries[index][1].trim());
+    const userAnswer = normalize(answer.trim());
 
     if (userAnswer === correct) {
       setStatus('correct');
