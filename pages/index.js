@@ -47,10 +47,6 @@ export default function Home() {
       setMessage("❗ Lütfen boş bırakmayın.");
       return;
     }
-
-    const isSure = confirm("Emin misin?");
-    if (!isSure) return;
-
     const answer = normalize(input);
     const correctAnswer = normalize(letters[word]);
 
