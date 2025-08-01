@@ -60,7 +60,7 @@ export default function Home() {
       setCombo(0);
     }
 
-    setTimeout(getRandomWord, 300);
+    setTimeout(getRandomWord, 1500);
   };
 
   return (
