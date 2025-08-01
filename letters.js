@@ -9,7 +9,7 @@ const letters = {
   "Life": "Yaşam",
   "keys": "Anahtarlar",
   "person": "kişi",
-  "Space": "Boşluk"
+  "Space": "Boşluk",
   "Control": "Kontrol",
   "Head": "Kafa",
   "Body": "Vicut",
