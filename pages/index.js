@@ -1,148 +1,135 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import letters from '../letters';
 
-// Türkçe karakterleri düzleştirir
-function normalize(text) {
+const normalize = (text) => {
   return text
     .toLowerCase()
     .replace(/ö/g, 'o')
-    .replace(/ç/g, 'c')
+    .replace(/ü/g, 'u')
     .replace(/ş/g, 's')
-    .replace(/ı/g, 'i')
+    .replace(/ç/g, 'c')
     .replace(/ğ/g, 'g')
-    .replace(/ü/g, 'u');
-}
-
-// Rastgele bir index döndürür
-function getRandomIndex(length, exclude) {
-  let idx;
-  do {
-    idx = Math.floor(Math.random() * length);
-  } while (idx === exclude && length > 1);
-  return idx;
-}
+    .replace(/ı/g, 'i');
+};
 
 export default function Home() {
-  const entries = Object.entries(letters);
-  const [index, setIndex] = useState(getRandomIndex(entries.length, -1));
-  const [answer, setAnswer] = useState('');
-  const [status, setStatus] = useState(null);
-
-  // İstatistikler
-  const [correctCount, setCorrectCount] = useState(0);
-  const [wrongCount, setWrongCount] = useState(0);
+  const [word, setWord] = useState('');
+  const [input, setInput] = useState('');
+  const [message, setMessage] = useState('');
   const [combo, setCombo] = useState(0);
+  const [correct, setCorrect] = useState(0);
+  const [wrong, setWrong] = useState(0);
+
+  useEffect(() => {
+    const stats = JSON.parse(localStorage.getItem('stats'));
+    if (stats) {
+      setCorrect(stats.correct || 0);
+      setWrong(stats.wrong || 0);
+      setCombo(stats.combo || 0);
+    }
+    getRandomWord();
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('stats', JSON.stringify({ correct, wrong, combo }));
+  }, [correct, wrong, combo]);
+
+  const getRandomWord = () => {
+    const keys = Object.keys(letters);
+    const randomKey = keys[Math.floor(Math.random() * keys.length)];
+    setWord(randomKey);
+    setInput('');
+    setMessage('');
+  };
 
   const handleCheck = () => {
-    const correct = normalize(entries[index][1].trim());
-    const userAnswer = normalize(answer.trim());
+    if (!input.trim()) {
+      setMessage("❗ Lütfen boş bırakmayın.");
+      return;
+    }
 
-    if (userAnswer === correct) {
-      setStatus('correct');
-      setCorrectCount(prev => prev + 1);
-      setCombo(prev => prev + 1);
+    const isSure = confirm("Emin misin?");
+    if (!isSure) return;
 
-      setTimeout(() => {
-        setIndex(getRandomIndex(entries.length, index));
-        setAnswer('');
-        setStatus(null);
-      }, 1000);
+    const answer = normalize(input);
+    const correctAnswer = normalize(letters[word]);
+
+    if (answer === correctAnswer) {
+      setMessage("✅ Doğru!");
+      setCorrect(c => c + 1);
+      setCombo(c => c + 1);
     } else {
-      setStatus('wrong');
-      setWrongCount(prev => prev + 1);
+      setMessage(`❌ Yanlış! Doğru cevap: ${letters[word]}`);
+      setWrong(w => w + 1);
       setCombo(0);
     }
+
+    setTimeout(getRandomWord, 1500);
   };
 
   return (
     <div style={{
-      fontFamily: 'Segoe UI, sans-serif',
+      fontFamily: 'Arial',
+      padding: '2rem',
+      backgroundColor: '#f3f3f3',
       minHeight: '100vh',
-      backgroundColor: '#f1f3f5',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '2rem'
+      textAlign: 'center'
     }}>
-      <div style={{
-        background: '#fff',
-        padding: '2rem',
-        borderRadius: '12px',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-        width: '100%',
-        maxWidth: '400px',
-        textAlign: 'center',
-        position: 'relative'
-      }}>
-        {/* 🔥 Combo Görseli */}
-        {combo >= 3 && (
-          <div style={{
-            position: 'absolute',
-            top: '-1.5rem',
-            right: '-1.5rem',
-            fontSize: '3rem'
-          }}>
-            🔥
-          </div>
-        )}
+      <h1 style={{ fontSize: '2rem' }}>Translate this word:</h1>
+      <h2 style={{ fontSize: '3rem', margin: '1rem 0' }}>{word}</h2>
 
-        <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: '#333' }}>
-          Translate the word below:
-        </h2>
+      <input
+        value={input}
+        onChange={e => setInput(e.target.value)}
+        placeholder="Türkçesini yazın..."
+        style={{
+          padding: '1rem',
+          fontSize: '1.2rem',
+          width: '80%',
+          maxWidth: '400px',
+          borderRadius: '0.5rem',
+          border: '1px solid #ccc'
+        }}
+      />
 
-        <div style={{
-          fontSize: '2rem',
-          fontWeight: 'bold',
-          color: '#0070f3',
-          marginBottom: '1rem'
-        }}>
-          {entries[index][0]}
-        </div>
-
-        <input
-          type="text"
-          value={answer}
-          onChange={(e) => {
-            setAnswer(e.target.value);
-            setStatus(null);
-          }}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') handleCheck();
-          }}
-          placeholder="Türkçesini yaz..."
+      <div>
+        <button
+          onClick={handleCheck}
           style={{
-            width: '100%',
-            padding: '0.75rem',
+            marginTop: '1rem',
+            padding: '0.7rem 2rem',
             fontSize: '1rem',
-            border: status === 'correct' ? '2px solid #38c172' :
-                    status === 'wrong' ? '2px solid #e3342f' :
-                    '1px solid #ccc',
-            borderRadius: '6px',
-            outline: 'none',
-            transition: 'border 0.2s ease'
+            backgroundColor: '#4caf50',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '0.3rem',
+            cursor: 'pointer'
           }}
-        />
+        >
+          Kontrol Et
+        </button>
+      </div>
 
-        {/* ✅ / ❌ Geri Bildirim */}
-        {status === 'correct' && (
-          <p style={{ color: '#38c172', marginTop: '0.75rem' }}>✅ Correct!</p>
-        )}
-        {status === 'wrong' && (
-          <p style={{ color: '#e3342f', marginTop: '0.75rem' }}>❌ Wrong! Try again.</p>
-        )}
-
-        {/* 📊 İstatistikler */}
-        <div style={{
-          marginTop: '1.5rem',
-          textAlign: 'left',
-          fontSize: '0.95rem',
-          color: '#555'
+      {message && (
+        <p style={{
+          marginTop: '1rem',
+          fontSize: '1.1rem',
+          color: message.startsWith("✅") ? 'green' : 'red'
         }}>
-          <p><strong>✅ Correct:</strong> {correctCount}</p>
-          <p><strong>❌ Wrong:</strong> {wrongCount}</p>
-          <p><strong>🔥 Combo:</strong> {combo}</p>
-        </div>
+          {message}
+        </p>
+      )}
+
+      <div style={{
+        marginTop: '2rem',
+        fontSize: '1rem',
+        color: '#333'
+      }}>
+        <p>✅ Doğru: {correct} | ❌ Yanlış: {wrong}</p>
+        <p style={{ fontSize: '1.2rem' }}>
+          🔥 Combo: <strong>{combo}</strong> {combo >= 3 ? '🔥' : ''}
+        </p>
       </div>
     </div>
   );
-            }
+              }
